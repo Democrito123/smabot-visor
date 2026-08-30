@@ -7,7 +7,7 @@
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
   :root{ --bg:#000000; --pane:#000000; --grid:#1a1a1a; --txt:#c9d4e5; --muted:#8a8a8a;
-         --up:#26c6a6; --dn:#ef5350; --chan:#c83cff; --chanlo:#9660ff; --sl:#2979ff; --red:#f2555a; }
+         --up:#26c6a6; --dn:#ef5350; --sl:#2979ff; --red:#f2555a; }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--txt);font-family:Segoe UI,Arial,sans-serif;font-size:13px}
   header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--grid);flex-wrap:wrap}
@@ -90,8 +90,7 @@
       <div class="legend" id="legend"></div>
       <div class="indPanel" id="indPanel">
         <div class="indHead">Indicadores</div>
-        <label class="indRow"><input type="checkbox" data-ind="donchUp"><span class="sw" style="background:#c83cff"></span>Canal Donchian máx</label>
-        <label class="indRow"><input type="checkbox" data-ind="donchLo"><span class="sw" style="background:#9660ff"></span>Canal Donchian mín</label>
+        <label class="indRow"><input type="checkbox" data-ind="zonas"><span class="sw" style="background:linear-gradient(90deg,#1e90ff,#deb887,#ff69b4,#c0c0c0,#32cd32,#2e8b57)"></span>Zonas horarias</label>
         <label class="indRow"><input type="checkbox" data-ind="sl"><span class="sw" style="background:#2979ff"></span>Escalera SL</label>
         <label class="indRow"><input type="checkbox" data-ind="tradeLine"><span class="sw" style="background:rgb(57,255,20)"></span>Línea entrada→salida</label>
         <label class="indRow"><input type="checkbox" data-ind="markers"><span class="sw" style="background:#ffffff;border-radius:50%"></span>Marcadores apertura/cierre</label>
@@ -107,7 +106,7 @@
     <table id="tbl"><thead><tr>
       <th class="l">#</th><th class="l">Dir</th><th>Entrada</th><th>Salida</th><th>P&amp;L</th><th>R</th>
     </tr></thead><tbody id="tbody"></tbody></table>
-    <div class="hint">La vista general muestra el Donchian y la línea de TODAS las operaciones. Clic en una fila para enfocar SOLO esa operación (su línea, su escalera de SL SL0→SLk y zoom); usa "← Vista general" para volver a ver todas. Rueda del mouse = zoom · arrastrar = desplazar.</div>
+    <div class="hint">La vista general muestra las zonas horarias y la línea de TODAS las operaciones. Clic en una fila para enfocar SOLO esa operación (su línea, su escalera de SL SL0→SLk y zoom); usa "← Vista general" para volver a ver todas. Rueda del mouse = zoom · arrastrar = desplazar.</div>
     <div id="detail" style="margin-top:12px"></div>
   </aside>
 </div>
@@ -136,8 +135,14 @@ const candle = chart.addCandlestickSeries({
   // no aporta nada sobre el trade y se confundia con las lineas de precio del trade (SL/Entrada/Salida)
   priceLineVisible:false, lastValueVisible:false
 });
-const chanUp = chart.addLineSeries({ color:'#c83cff', lineWidth:2, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
-const chanLo = chart.addLineSeries({ color:'#9660ff', lineWidth:2, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+// Rectangulos semitransparentes de zona horaria: no hay primitiva nativa de rectangulo
+// en esta version de Lightweight Charts, asi que se dibujan como divs HTML posicionados
+// encima del canvas del grafico (coordenadas via timeToCoordinate/priceToCoordinate),
+// insertados COMO PRIMER HIJO de #chart para quedar POR DEBAJO de las velas.
+const zoneOverlay = document.createElement('div');
+zoneOverlay.id = 'zoneOverlay';
+zoneOverlay.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;';
+chartEl.insertBefore(zoneOverlay, chartEl.firstChild);
 const slLine = chart.addLineSeries({ color:'#2979ff', lineWidth:2, lineType:LightweightCharts.LineType.WithSteps, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
 // lineas diagonales punteadas de entrada->salida: se ve UNA por cada operacion del
 // simbolo, TODAS a la vez en la vista general (verde=gano, amarillo=perdio). Cada
@@ -161,7 +166,7 @@ function clearPriceLines(){ priceLines.forEach(pl=>candle.removePriceLine(pl)); 
 // Estado persistido en localStorage: que indicadores estan activos (por defecto todos ON).
 // Cada checkbox controla su serie de forma independiente via applyOptions({visible}) --
 // esto NO borra los datos, solo los oculta, asi que reactivar es instantaneo sin recalcular nada.
-const IND_DEFAULT = {donchUp:true, donchLo:true, sl:true, tradeLine:true, markers:true, priceLines:true};
+const IND_DEFAULT = {zonas:true, sl:true, tradeLine:true, markers:true, priceLines:true};
 let indState = IND_DEFAULT;
 try{
   const saved = JSON.parse(localStorage.getItem('bot_ind_state')||'{}');
@@ -210,8 +215,7 @@ function buildPriceLinesFor(t){
 }
 
 function applyIndOne(key){
-  if(key==='donchUp')    chanUp.applyOptions({visible: indState.donchUp});
-  if(key==='donchLo')    chanLo.applyOptions({visible: indState.donchLo});
+  if(key==='zonas')      renderZoneOverlay();
   if(key==='sl')         slLine.applyOptions({visible: indState.sl});
   if(key==='tradeLine'){
     // en la vista general se ven TODAS; si hay un trade seleccionado, SOLO la de ese trade
@@ -234,20 +238,89 @@ document.querySelectorAll('#indPanel input[type=checkbox]').forEach(cb=>{
 });
 applyIndAll();
 
-new ResizeObserver(()=>chart.applyOptions({width:chartEl.clientWidth,height:chartEl.clientHeight})).observe(chartEl);
+new ResizeObserver(()=>{ chart.applyOptions({width:chartEl.clientWidth,height:chartEl.clientHeight}); renderZoneOverlay(); }).observe(chartEl);
 chart.applyOptions({width:chartEl.clientWidth,height:chartEl.clientHeight});
 
-function donchian(candles, N){
-  const up=[], lo=[];
-  for(let i=0;i<candles.length;i++){
-    if(i<N) continue;
-    let hh=-1e18, ll=1e18;
-    for(let j=i-N;j<i;j++){ if(candles[j].h>hh)hh=candles[j].h; if(candles[j].l<ll)ll=candles[j].l; }
-    up.push({time:candles[i].t, value:hh});
-    lo.push({time:candles[i].t, value:ll});
-  }
-  return {up,lo};
+// ---------------- Zonas horarias (mismas 6 zonas y misma regla de DST que el EA) ----------------
+// Replica EXACTA de ICMarketsEnDST/CalcularOffsetLocal/ClasificarCuadro de SMABot_MT5.mq5:
+// servidor IC Markets en GMT+3 (DST activo, 2do domingo de marzo a 1er domingo de noviembre,
+// 02:00 hora servidor) o GMT+2 fuera de DST; Bolivia es UTC-4 fijo, sin DST propio.
+const ZONE_COLOR = {
+  azul:   {line:'#1e90ff', fill:'rgba(30,144,255,0.12)'},
+  crema:  {line:'#deb887', fill:'rgba(222,184,135,0.14)'},
+  rosa:   {line:'#ff69b4', fill:'rgba(255,105,180,0.12)'},
+  blanco: {line:'#c0c0c0', fill:'rgba(192,192,192,0.10)'},
+  verde1: {line:'#32cd32', fill:'rgba(50,205,50,0.12)'},
+  verde2: {line:'#2e8b57', fill:'rgba(46,139,87,0.12)'},
+};
+function nthSundayUTC(y, monthIdx, nth){
+  const d1 = new Date(Date.UTC(y, monthIdx, 1));
+  const dow = d1.getUTCDay();
+  const firstSunday = 1 + ((7 - dow) % 7);
+  return Date.UTC(y, monthIdx, firstSunday + (nth - 1) * 7);
 }
+function icMarketsEnDST(tServerSec){
+  const y = new Date(tServerSec * 1000).getUTCFullYear();
+  const inicioDST = nthSundayUTC(y, 2, 2) + 2 * 3600 * 1000;   // 2do domingo de marzo, 02:00
+  const finDST    = nthSundayUTC(y, 10, 1) + 2 * 3600 * 1000;  // 1er domingo de noviembre, 02:00
+  const tMs = tServerSec * 1000;
+  return tMs >= inicioDST && tMs < finDST;
+}
+function offsetLocal(tServerSec){ return icMarketsEnDST(tServerSec) ? -7 : -6; }
+function clasificarCuadro(tServerSec){
+  const tLocal = new Date((tServerSec + offsetLocal(tServerSec) * 3600) * 1000);
+  const mins = tLocal.getUTCHours() * 60 + tLocal.getUTCMinutes();
+  if(mins >= 150 && mins < 270)  return 'azul';
+  if(mins >= 270 && mins < 390)  return 'crema';
+  if(mins >= 390 && mins < 690)  return 'rosa';
+  if(mins >= 690 && mins < 750)  return 'blanco';
+  if(mins >= 750 && mins < 1320) return 'verde1';
+  return 'verde2';
+}
+function computeZoneSegments(candles){
+  const segs = [];
+  let cur = null;
+  for(const k of candles){
+    const z = clasificarCuadro(k.t);
+    if(!cur || cur.zone !== z){
+      if(cur) segs.push(cur);
+      cur = {zone:z, t0:k.t, t1:k.t, lo:k.l, hi:k.h};
+    } else {
+      cur.t1 = k.t;
+      if(k.l < cur.lo) cur.lo = k.l;
+      if(k.h > cur.hi) cur.hi = k.h;
+    }
+  }
+  if(cur) segs.push(cur);
+  return segs;
+}
+let zoneSegs = [];   // segmentos de la vista actual (simbolo completo cargado en render(sym))
+function renderZoneOverlay(){
+  if(!indState.zonas || !zoneSegs.length){ zoneOverlay.innerHTML = ''; return; }
+  const ts = chart.timeScale();
+  const halfBar = (ts.options().barSpacing || 6) / 2;
+  const W = chartEl.clientWidth, H = chartEl.clientHeight;
+  let html = '';
+  for(const seg of zoneSegs){
+    let x0 = ts.timeToCoordinate(seg.t0);
+    let x1 = ts.timeToCoordinate(seg.t1);
+    if(x0===null && x1===null) continue;
+    if(x0===null) x0 = -40; if(x1===null) x1 = W+40;
+    let left = x0 - halfBar, right = x1 + halfBar;
+    if(right < -5 || left > W+5) continue;
+    left = Math.max(left, -5); right = Math.min(right, W+5);
+    const yHi = candle.priceToCoordinate(seg.hi);
+    const yLo = candle.priceToCoordinate(seg.lo);
+    if(yHi===null || yLo===null) continue;
+    const col = ZONE_COLOR[seg.zone] || ZONE_COLOR.verde2;
+    const w = Math.max(1, right - left), h = Math.max(1, yLo - yHi);
+    html += `<div style="position:absolute;left:${left}px;top:${yHi}px;width:${w}px;height:${h}px;`+
+            `background:${col.fill};border:1px solid ${col.line};box-sizing:border-box;pointer-events:none"></div>`;
+  }
+  zoneOverlay.innerHTML = html;
+}
+chart.timeScale().subscribeVisibleTimeRangeChange(renderZoneOverlay);
+
 
 // devuelve el timestamp EXACTO de la vela cuyo periodo contiene "ts" (la vela cuya
 // apertura es <= ts y la siguiente abre despues). Esto hace falta porque el precio de
@@ -273,8 +346,7 @@ function render(sym){
   const S = D.symbols[sym];
   const cs = S.candles.map(k=>({time:k.t, open:k.o, high:k.h, low:k.l, close:k.c}));
   candle.setData(cs);
-  const dc = donchian(S.candles, 20);
-  chanUp.setData(dc.up); chanLo.setData(dc.lo);
+  zoneSegs = computeZoneSegments(S.candles);
   slLine.setData([]);           // la escalera de SL solo se ve al seleccionar un trade
   curPriceLineTrade = null;
   clearPriceLines();
@@ -324,6 +396,7 @@ function render(sym){
 
   buildTable(S.trades);
   chart.timeScale().fitContent();
+  renderZoneOverlay();
   legend(sym, S);
 }
 
@@ -338,9 +411,8 @@ function volverVistaGeneral(){
   const cs = S.candles.map(k=>({time:k.t, open:k.o, high:k.h, low:k.l, close:k.c}));
   candle.setData(cs);
   applyMarkers();
-  const dc = donchian(S.candles, 20);
-  chanUp.setData(dc.up); chanLo.setData(dc.lo);
   chart.timeScale().fitContent();
+  renderZoneOverlay();
   document.getElementById('btnVolver').style.display = 'none';
   document.getElementById('detail').innerHTML = '<div class="hint">Selecciona una operación de la tabla para ver su detalle y su escalera de SL.</div>';
 }
@@ -455,11 +527,8 @@ function selectTrade(i){
   // bien) -- confirmado en pruebas. Volver a llamar setData con la MISMA data fuerza el
   // repintado correcto. Es un workaround, pero 100% reproducible y confiable.
   candle.setData(ventanaData);
-  const fromT = ventana[0].t, toT = ventana[ventana.length-1].t;
-  const dcVentana = donchian(candsFull, 20); // se calcula sobre el historial completo (necesita 20 velas previas de contexto)
-  chanUp.setData(dcVentana.up.filter(p => p.time >= fromT && p.time <= toT));
-  chanLo.setData(dcVentana.lo.filter(p => p.time >= fromT && p.time <= toT));
   chart.timeScale().fitContent();
+  renderZoneOverlay();
   detail(t, i);
 }
 
