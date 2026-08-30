@@ -90,7 +90,7 @@
       <div class="legend" id="legend"></div>
       <div class="indPanel" id="indPanel">
         <div class="indHead">Indicadores</div>
-        <label class="indRow"><input type="checkbox" data-ind="zonas"><span class="sw" style="background:linear-gradient(90deg,#1e90ff,#deb887,#ff69b4,#c0c0c0,#32cd32,#2e8b57)"></span>Zonas horarias</label>
+        <label class="indRow"><input type="checkbox" data-ind="zonas"><span class="sw" style="background:linear-gradient(90deg,#3aa0ff,#e8c98f,#ff7ec4,#d8d8d8,#4be04b,#3fae7a)"></span>Zonas horarias</label>
         <label class="indRow"><input type="checkbox" data-ind="sl"><span class="sw" style="background:#2979ff"></span>Escalera SL</label>
         <label class="indRow"><input type="checkbox" data-ind="tradeLine"><span class="sw" style="background:rgb(57,255,20)"></span>Línea entrada→salida</label>
         <label class="indRow"><input type="checkbox" data-ind="markers"><span class="sw" style="background:#ffffff;border-radius:50%"></span>Marcadores apertura/cierre</label>
@@ -137,12 +137,18 @@ const candle = chart.addCandlestickSeries({
 });
 // Rectangulos semitransparentes de zona horaria: no hay primitiva nativa de rectangulo
 // en esta version de Lightweight Charts, asi que se dibujan como divs HTML posicionados
-// encima del canvas del grafico (coordenadas via timeToCoordinate/priceToCoordinate),
-// insertados COMO PRIMER HIJO de #chart para quedar POR DEBAJO de las velas.
+// encima del canvas del grafico (coordenadas via timeToCoordinate/priceToCoordinate).
+// IMPORTANTE: el canvas propio de la libreria tiene z-index:2 explicito (confirmado
+// inspeccionando el DOM en vivo) -- un overlay con z-index:auto queda SIEMPRE detras de
+// el sin importar el orden en el HTML, aunque el div exista y tenga contenido (se ve
+// "vacio" pero en realidad esta ahi, tapado). Por eso este div necesita z-index:3
+// explicito (por encima del canvas=2, por debajo del panel de leyenda=5).
+// pointer-events:none deja pasar el mouse hacia el grafico para que zoom/paneo sigan
+// funcionando con normalidad.
 const zoneOverlay = document.createElement('div');
 zoneOverlay.id = 'zoneOverlay';
-zoneOverlay.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;';
-chartEl.insertBefore(zoneOverlay, chartEl.firstChild);
+zoneOverlay.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:3;';
+chartEl.appendChild(zoneOverlay);
 let zoneSegs = [];   // segmentos de zona horaria de la vista actual (poblado en render(sym))
 const slLine = chart.addLineSeries({ color:'#2979ff', lineWidth:2, lineType:LightweightCharts.LineType.WithSteps, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
 // lineas diagonales punteadas de entrada->salida: se ve UNA por cada operacion del
@@ -247,12 +253,12 @@ chart.applyOptions({width:chartEl.clientWidth,height:chartEl.clientHeight});
 // servidor IC Markets en GMT+3 (DST activo, 2do domingo de marzo a 1er domingo de noviembre,
 // 02:00 hora servidor) o GMT+2 fuera de DST; Bolivia es UTC-4 fijo, sin DST propio.
 const ZONE_COLOR = {
-  azul:   {line:'#1e90ff', fill:'rgba(30,144,255,0.12)'},
-  crema:  {line:'#deb887', fill:'rgba(222,184,135,0.14)'},
-  rosa:   {line:'#ff69b4', fill:'rgba(255,105,180,0.12)'},
-  blanco: {line:'#c0c0c0', fill:'rgba(192,192,192,0.10)'},
-  verde1: {line:'#32cd32', fill:'rgba(50,205,50,0.12)'},
-  verde2: {line:'#2e8b57', fill:'rgba(46,139,87,0.12)'},
+  azul:   {line:'#3aa0ff', fill:'rgba(58,160,255,0.16)'},
+  crema:  {line:'#e8c98f', fill:'rgba(232,201,143,0.18)'},
+  rosa:   {line:'#ff7ec4', fill:'rgba(255,126,196,0.16)'},
+  blanco: {line:'#d8d8d8', fill:'rgba(216,216,216,0.13)'},
+  verde1: {line:'#4be04b', fill:'rgba(75,224,75,0.16)'},
+  verde2: {line:'#3fae7a', fill:'rgba(63,174,122,0.16)'},
 };
 function nthSundayUTC(y, monthIdx, nth){
   const d1 = new Date(Date.UTC(y, monthIdx, 1));
