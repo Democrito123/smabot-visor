@@ -322,14 +322,18 @@ function toChartTime(tServer){ return tServer + offsetLocal(tServer) * 3600; }
 // NY durante EDT (coinciden, UTC-4 ambos) y 1 hora mas tarde durante EST (Bolivia no
 // tiene horario de verano, NY si).
 function horaNY(tServerSec){ return tServerSec - 7 * 3600; }
+// CORRECCION del 30-ago-2026: los umbrales originales de bot_engine.py/logica_sma.pdf
+// (azul 02:30, crema 04:30, rosa 06:30, blanco 11:30, verde1 12:30, verde2 22:00 -- en
+// teoria hora NY) estaban corridos 1 hora tarde. Confirmado con TradingView (referencia
+// del usuario): verde1 arranca a las 11:30, no 12:30. Se le resta 60 min a cada umbral.
 function clasificarCuadro(tServerSec){
   const tLocal = new Date(horaNY(tServerSec) * 1000);
   const mins = tLocal.getUTCHours() * 60 + tLocal.getUTCMinutes();
-  if(mins >= 150 && mins < 270)  return 'azul';
-  if(mins >= 270 && mins < 390)  return 'crema';
-  if(mins >= 390 && mins < 690)  return 'rosa';
-  if(mins >= 690 && mins < 750)  return 'blanco';
-  if(mins >= 750 && mins < 1320) return 'verde1';
+  if(mins >= 90  && mins < 210)  return 'azul';     // 01:30-03:30 NY (antes 02:30-04:30)
+  if(mins >= 210 && mins < 330)  return 'crema';    // 03:30-05:30 NY (antes 04:30-06:30)
+  if(mins >= 330 && mins < 630)  return 'rosa';     // 05:30-10:30 NY (antes 06:30-11:30)
+  if(mins >= 630 && mins < 690)  return 'blanco';   // 10:30-11:30 NY (antes 11:30-12:30)
+  if(mins >= 690 && mins < 1260) return 'verde1';   // 11:30-21:00 NY (antes 12:30-22:00)
   return 'verde2';
 }
 function computeZoneSegments(candles){
