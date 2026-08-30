@@ -143,6 +143,7 @@ const zoneOverlay = document.createElement('div');
 zoneOverlay.id = 'zoneOverlay';
 zoneOverlay.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;';
 chartEl.insertBefore(zoneOverlay, chartEl.firstChild);
+let zoneSegs = [];   // segmentos de zona horaria de la vista actual (poblado en render(sym))
 const slLine = chart.addLineSeries({ color:'#2979ff', lineWidth:2, lineType:LightweightCharts.LineType.WithSteps, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
 // lineas diagonales punteadas de entrada->salida: se ve UNA por cada operacion del
 // simbolo, TODAS a la vez en la vista general (verde=gano, amarillo=perdio). Cada
@@ -294,7 +295,6 @@ function computeZoneSegments(candles){
   if(cur) segs.push(cur);
   return segs;
 }
-let zoneSegs = [];   // segmentos de la vista actual (simbolo completo cargado en render(sym))
 function renderZoneOverlay(){
   if(!indState.zonas || !zoneSegs.length){ zoneOverlay.innerHTML = ''; return; }
   const ts = chart.timeScale();
