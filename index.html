@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Mi Bot Â· Visor de operaciones</title>
+<title>Mi Bot · Visor de operaciones</title>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
   :root{ --bg:#000000; --pane:#000000; --grid:#1a1a1a; --txt:#c9d4e5; --muted:#8a8a8a;
@@ -80,7 +80,7 @@
 </head>
 <body>
 <header>
-  <h1>Mi Bot Â· Visor de operaciones</h1>
+  <h1>Mi Bot · Visor de operaciones</h1>
   <div class="tabs" id="tabs"></div>
   <div class="gen" id="gen"></div>
 </header>
@@ -92,9 +92,9 @@
         <div class="indHead">Indicadores</div>
         <label class="indRow"><input type="checkbox" data-ind="zonas"><span class="sw" style="background:linear-gradient(90deg,#3aa0ff,#e8c98f,#ff7ec4,#d8d8d8,#4be04b,#3fae7a)"></span>Zonas horarias</label>
         <label class="indRow"><input type="checkbox" data-ind="sl"><span class="sw" style="background:#2979ff"></span>Escalera SL</label>
-        <label class="indRow"><input type="checkbox" data-ind="tradeLine"><span class="sw" style="background:rgb(57,255,20)"></span>LÃ­nea entradaâ†’salida</label>
+        <label class="indRow"><input type="checkbox" data-ind="tradeLine"><span class="sw" style="background:rgb(57,255,20)"></span>Línea entradaâ†’salida</label>
         <label class="indRow"><input type="checkbox" data-ind="markers"><span class="sw" style="background:#ffffff;border-radius:50%"></span>Marcadores apertura/cierre</label>
-        <label class="indRow"><input type="checkbox" data-ind="priceLines"><span class="sw" style="background:#ffd54f"></span>LÃ­neas de precio (SL/Entr/Salida)</label>
+        <label class="indRow"><input type="checkbox" data-ind="priceLines"><span class="sw" style="background:#ffd54f"></span>Líneas de precio (SL/Entr/Salida)</label>
       </div>
     </div>
   </div>
@@ -106,7 +106,7 @@
     <table id="tbl"><thead><tr>
       <th class="l">#</th><th class="l">Dir</th><th>Entrada</th><th>Salida</th><th>P&amp;L</th><th>R</th>
     </tr></thead><tbody id="tbody"></tbody></table>
-    <div class="hint">La vista general muestra las zonas horarias y la lÃ­nea de TODAS las operaciones. Clic en una fila para enfocar SOLO esa operaciÃ³n (su lÃ­nea, su escalera de SL SL0â†’SLk y zoom); usa "â† Vista general" para volver a ver todas. Rueda del mouse = zoom Â· arrastrar = desplazar.</div>
+    <div class="hint">La vista general muestra las zonas horarias y la línea de TODAS las operaciones. Clic en una fila para enfocar SOLO esa operación (su línea, su escalera de SL SL0â†’SLk y zoom); usa "â† Vista general" para volver a ver todas. Rueda del mouse = zoom · arrastrar = desplazar.</div>
     <div id="detail" style="margin-top:12px"></div>
   </aside>
 </div>
@@ -206,7 +206,7 @@ function buildPriceLinesFor(t){
   if(n > 1){
     priceLines.push(candle.createPriceLine({
       price: last.p, color: stepColor(n-1, n), lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid,
-      axisLabelVisible: true, title: `SL${n-1} (Ãºltimo)  ${fmt(last.p, dg())}`
+      axisLabelVisible: true, title: `SL${n-1} (último)  ${fmt(last.p, dg())}`
     }));
   }
   priceLines.push(candle.createPriceLine({
@@ -278,7 +278,7 @@ function offsetLocal(tServerSec){ return icMarketsEnDST(tServerSec) ? -7 : -6; }
 // minutos en UTC del numero que se le da (no convierte a huso horario del navegador).
 // Como los datos vienen en hora del SERVIDOR de IC Markets (que ademas cambia de GMT+2
 // a GMT+3 automaticamente con el horario de verano), hay que "disfrazar" cada tiempo
-// sumandole el offset correspondiente ANTES de dÃ¡rselo al grafico -- asi lo que la
+// sumandole el offset correspondiente ANTES de dárselo al grafico -- asi lo que la
 // libreria extrae como si fuera UTC es en realidad la hora local de Bolivia. Se usa
 // SIEMPRE que se construye un punto para una serie del grafico (velas, marcadores,
 // lineas, zonas) o para mostrar una hora en texto (fmtT).
@@ -357,8 +357,8 @@ function barTimeFor(candles, ts){
   return toChartTime(ans);
 }
 
-function fmt(n,d){ return (n==null)?'â€“':Number(n).toLocaleString('es',{minimumFractionDigits:d,maximumFractionDigits:d}); }
-function fmtT(ts){ if(ts==null) return 'â€“'; const d=new Date(toChartTime(ts)*1000); return d.toISOString().slice(0,16).replace('T',' '); }
+function fmt(n,d){ return (n==null)?'–':Number(n).toLocaleString('es',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fmtT(ts){ if(ts==null) return '–'; const d=new Date(toChartTime(ts)*1000); return d.toISOString().slice(0,16).replace('T',' '); }
 
 function render(sym){
   curSym = sym; selTrade = null;
@@ -370,7 +370,7 @@ function render(sym){
   curPriceLineTrade = null;
   clearPriceLines();
   document.getElementById('btnVolver').style.display = 'none';
-  document.getElementById('detail').innerHTML = '<div class="hint">Selecciona una operaciÃ³n de la tabla para ver su detalle y su escalera de SL.</div>';
+  document.getElementById('detail').innerHTML = '<div class="hint">Selecciona una operación de la tabla para ver su detalle y su escalera de SL.</div>';
 
   // marcadores de ENTRADA (flecha verde/roja, numerada) y de SALIDA (cuadrado blanco,
   // forma y color bien distintos de la flecha de entrada para que se note donde termina)
@@ -433,17 +433,17 @@ function volverVistaGeneral(){
   chart.timeScale().fitContent();
   renderZoneOverlay();
   document.getElementById('btnVolver').style.display = 'none';
-  document.getElementById('detail').innerHTML = '<div class="hint">Selecciona una operaciÃ³n de la tabla para ver su detalle y su escalera de SL.</div>';
+  document.getElementById('detail').innerHTML = '<div class="hint">Selecciona una operación de la tabla para ver su detalle y su escalera de SL.</div>';
 }
 document.getElementById('btnVolver').addEventListener('click', volverVistaGeneral);
 
 function legend(sym, S){
   document.getElementById('legend').innerHTML =
-    `<b>${sym}</b> Â· H4 Â· ${S.candles.length} velas<br>`+
+    `<b>${sym}</b> · H4 · ${S.candles.length} velas<br>`+
     `<span class="sw" style="background:rgb(57,255,20);height:2px;border-bottom:2px dashed rgb(57,255,20)"></span>`+
-    `LÃ­nea punteada = entrada â†’ salida de cada operaciÃ³n (verde=ganÃ³, amarillo=perdiÃ³)<br>`+
-    `<span style="color:var(--muted)">Clic en una fila para enfocar SOLO esa operaciÃ³n (su lÃ­nea, su SL y zoom) Â· `+
-    `botÃ³n "â† Vista general" junto a la tabla para volver<br>(panel de abajo: mostrar/ocultar cada indicador)</span>`;
+    `Línea punteada = entrada â†’ salida de cada operación (verde=ganó, amarillo=perdió)<br>`+
+    `<span style="color:var(--muted)">Clic en una fila para enfocar SOLO esa operación (su línea, su SL y zoom) · `+
+    `botón "â† Vista general" junto a la tabla para volver<br>(panel de abajo: mostrar/ocultar cada indicador)</span>`;
 }
 
 function buildTable(trades){
@@ -541,7 +541,7 @@ function selectTrade(i){
   const ventana = candsFull.slice(fromI, toI + 1);
   const ventanaData = ventana.map(k=>({time:toChartTime(k.t), open:k.o, high:k.h, low:k.l, close:k.c}));
   candle.setData(ventanaData);
-  // OJO: al reducir el dataset de 255 velas a un puÃ±ado (ventana), la libreria a veces NO
+  // OJO: al reducir el dataset de 255 velas a un puñado (ventana), la libreria a veces NO
   // repinta bien en la primera llamada (queda el grafico en blanco aunque los datos esten
   // bien) -- confirmado en pruebas. Volver a llamar setData con la MISMA data fuerza el
   // repintado correcto. Es un workaround, pero 100% reproducible y confiable.
@@ -562,28 +562,28 @@ function detail(t, i){
     `<td>${fmt(s.p,dg())}</td><td style="text-align:right;font-size:11px;color:var(--muted)">${fmtT(s.t)}</td></tr>`
   ).join('');
   document.getElementById('detail').innerHTML =
-    `<h2>OperaciÃ³n #${i+1}</h2>`+
+    `<h2>Operación #${i+1}</h2>`+
     `<table>`+
-    `<tr><td class="l">SÃ­mbolo</td><td>${curSym}</td></tr>`+
-    `<tr><td class="l">DirecciÃ³n</td><td>${t.dir==='compra'?'COMPRA':'VENTA'}</td></tr>`+
+    `<tr><td class="l">Símbolo</td><td>${curSym}</td></tr>`+
+    `<tr><td class="l">Dirección</td><td>${t.dir==='compra'?'COMPRA':'VENTA'}</td></tr>`+
     `<tr><td class="l">Lotes</td><td>${fmt(t.lots,2)}</td></tr>`+
     `<tr><td class="l">Inicio</td><td style="font-size:11px">${fmtT(t.entry_t)}</td></tr>`+
     `<tr><td class="l">Fin</td><td style="font-size:11px">${t.exit_t?fmtT(t.exit_t):'abierta'}</td></tr>`+
     `<tr><td class="l">Entrada</td><td>${fmt(t.entry_p,dg())}</td></tr>`+
     `<tr><td class="l">Salida</td><td>${t.exit_p?fmt(t.exit_p,dg()):'abierta'}</td></tr>`+
     `<tr><td class="l">P&amp;L neto</td><td class="${pnlc}">${fmt(t.pnl,2)} USD</td></tr>`+
-    `<tr><td class="l">Râ€‘mÃºltiplo</td><td class="${r>=0?'pos':'neg'}">${fmt(r,2)} R</td></tr>`+
+    `<tr><td class="l">Râ€‘múltiplo</td><td class="${r>=0?'pos':'neg'}">${fmt(r,2)} R</td></tr>`+
     `<tr><td class="l">Estado</td><td>${t.estado}</td></tr>`+
-    (t.mfe!=null?`<tr><td class="l">MÃ¡x. a favor (runâ€‘up)</td><td class="pos">+${fmt(t.mfe,dg())} (${fmt(t.mfe_pct,2)}%)</td></tr>`:'')+
-    (t.mae!=null?`<tr><td class="l">MÃ¡x. en contra (drawdown)</td><td class="neg">-${fmt(t.mae,dg())} (${fmt(t.mae_pct,2)}%)</td></tr>`:'')+
+    (t.mfe!=null?`<tr><td class="l">Máx. a favor (runâ€‘up)</td><td class="pos">+${fmt(t.mfe,dg())} (${fmt(t.mfe_pct,2)}%)</td></tr>`:'')+
+    (t.mae!=null?`<tr><td class="l">Máx. en contra (drawdown)</td><td class="neg">-${fmt(t.mae,dg())} (${fmt(t.mae_pct,2)}%)</td></tr>`:'')+
     `</table>`+
     (t.bruto!=null?
-    `<h2>Costes de la operaciÃ³n</h2>`+
+    `<h2>Costes de la operación</h2>`+
     `<table>`+
     `<tr><td class="l">P&amp;L bruto (precio)</td><td class="${t.bruto>=0?'pos':'neg'}">${fmt(t.bruto,2)} USD</td></tr>`+
     `<tr><td class="l">Swap</td><td class="${t.swap>=0?'pos':'neg'}">${fmt(t.swap,2)} USD</td></tr>`+
-    `<tr><td class="l">ComisiÃ³n</td><td class="${t.comision>=0?'pos':'neg'}">${fmt(t.comision,2)} USD</td></tr>`+
-    `<tr><td class="l">P&amp;L neto (= bruto+swap+comisiÃ³n)</td><td class="${pnlc}">${fmt(t.pnl,2)} USD</td></tr>`+
+    `<tr><td class="l">Comisión</td><td class="${t.comision>=0?'pos':'neg'}">${fmt(t.comision,2)} USD</td></tr>`+
+    `<tr><td class="l">P&amp;L neto (= bruto+swap+comisión)</td><td class="${pnlc}">${fmt(t.pnl,2)} USD</td></tr>`+
     `</table>` : '')+
     `<h2>Pasos del SL (${n})</h2>`+
     `<table>${pasos}</table>`;
@@ -723,13 +723,13 @@ function renderSummaryHTML(S){
       <div class="kpi"><div class="lbl">Abiertas ahora</div><div class="val">${S.nAbiertas}</div></div>
       <div class="kpi"><div class="lbl">Winrate</div><div class="val">${fmt(S.winrate,1)}%</div></div>
       <div class="kpi"><div class="lbl">Profit Factor</div><div class="val">${S.pf===Infinity?'âˆž':fmt(S.pf,2)}</div></div>
-      <div class="kpi"><div class="lbl">Drawdown mÃ¡x</div><div class="val" style="color:#ef5350">${fmt(S.maxDDpct,1)}%<span style="font-size:11px;color:var(--muted);font-weight:400"> (${fmt(S.maxDD,2)} ${S.moneda})</span></div></div>
+      <div class="kpi"><div class="lbl">Drawdown máx</div><div class="val" style="color:#ef5350">${fmt(S.maxDDpct,1)}%<span style="font-size:11px;color:var(--muted);font-weight:400"> (${fmt(S.maxDD,2)} ${S.moneda})</span></div></div>
     </div>
 
-    <div class="sumSection"><h2>VisiÃ³n general</h2></div>
+    <div class="sumSection"><h2>Visión general</h2></div>
     <div class="sumGrid">
-      <div class="card"><h3>EvoluciÃ³n del capital</h3><div id="eqChart"></div></div>
-      <div class="card"><h3>P&amp;L por sÃ­mbolo</h3>
+      <div class="card"><h3>Evolución del capital</h3><div id="eqChart"></div></div>
+      <div class="card"><h3>P&amp;L por símbolo</h3>
         <div class="donutWrap">
           <div class="donut" style="background:${donutGradient(S.bySym)}"></div>
           <div class="donutLeg">${S.bySym.map(b=>
@@ -739,24 +739,24 @@ function renderSummaryHTML(S){
         </div>
       </div>
     </div>
-    <div class="card" style="margin-bottom:22px"><h3>Drawdown (caÃ­da desde el mÃ¡ximo)</h3><div id="ddChart"></div></div>
+    <div class="card" style="margin-bottom:22px"><h3>Drawdown (caída desde el máximo)</h3><div id="ddChart"></div></div>
 
     <div class="sumSection"><h2>Rendimiento</h2></div>
     <div class="card" style="margin-bottom:22px">
       <div class="kpis" style="margin:0">
         <div class="kpi"><div class="lbl">Ganancia media</div><div class="val pos">${fmt(S.avgWin,2)} ${S.moneda}</div></div>
-        <div class="kpi"><div class="lbl">PÃ©rdida media</div><div class="val neg">${fmt(S.avgLoss,2)} ${S.moneda}</div></div>
-        <div class="kpi"><div class="lbl">Ratio ganancia/pÃ©rdida</div><div class="val">${S.payoff===Infinity?'âˆž':fmt(S.payoff,2)}</div></div>
+        <div class="kpi"><div class="lbl">Pérdida media</div><div class="val neg">${fmt(S.avgLoss,2)} ${S.moneda}</div></div>
+        <div class="kpi"><div class="lbl">Ratio ganancia/pérdida</div><div class="val">${S.payoff===Infinity?'âˆž':fmt(S.payoff,2)}</div></div>
         <div class="kpi"><div class="lbl">Expectancia / trade</div><div class="val ${S.expectancy>=0?'pos':'neg'}">${fmt(S.expectancy,2)} ${S.moneda}</div></div>
-        <div class="kpi"><div class="lbl">DuraciÃ³n media</div><div class="val">${fmt(S.avgDurH,0)} h</div></div>
-        <div class="kpi"><div class="lbl">Mejor operaciÃ³n</div><div class="val pos">${S.best?fmt(S.best.pnl,2):'â€“'} ${S.moneda}</div></div>
-        <div class="kpi"><div class="lbl">Peor operaciÃ³n</div><div class="val neg">${S.worst?fmt(S.worst.pnl,2):'â€“'} ${S.moneda}</div></div>
-        <div class="kpi"><div class="lbl">Racha mÃ¡x. ganadora</div><div class="val pos">${S.maxRachaW}</div></div>
-        <div class="kpi"><div class="lbl">Racha mÃ¡x. perdedora</div><div class="val neg">${S.maxRachaL}</div></div>
-        <div class="kpi"><div class="lbl">Sharpe (por operaciÃ³n)</div><div class="val">${fmt(S.sharpe,2)}</div></div>
-        <div class="kpi"><div class="lbl">Sortino (por operaciÃ³n)</div><div class="val">${S.sortino===Infinity?'âˆž':fmt(S.sortino,2)}</div></div>
+        <div class="kpi"><div class="lbl">Duración media</div><div class="val">${fmt(S.avgDurH,0)} h</div></div>
+        <div class="kpi"><div class="lbl">Mejor operación</div><div class="val pos">${S.best?fmt(S.best.pnl,2):'–'} ${S.moneda}</div></div>
+        <div class="kpi"><div class="lbl">Peor operación</div><div class="val neg">${S.worst?fmt(S.worst.pnl,2):'–'} ${S.moneda}</div></div>
+        <div class="kpi"><div class="lbl">Racha máx. ganadora</div><div class="val pos">${S.maxRachaW}</div></div>
+        <div class="kpi"><div class="lbl">Racha máx. perdedora</div><div class="val neg">${S.maxRachaL}</div></div>
+        <div class="kpi"><div class="lbl">Sharpe (por operación)</div><div class="val">${fmt(S.sharpe,2)}</div></div>
+        <div class="kpi"><div class="lbl">Sortino (por operación)</div><div class="val">${S.sortino===Infinity?'âˆž':fmt(S.sortino,2)}</div></div>
         <div class="kpi"><div class="lbl">Swap total</div><div class="val ${S.totalSwap>=0?'pos':'neg'}">${fmt(S.totalSwap,2)} ${S.moneda}</div></div>
-        <div class="kpi"><div class="lbl">ComisiÃ³n total</div><div class="val ${S.totalComision>=0?'pos':'neg'}">${fmt(S.totalComision,2)} ${S.moneda}</div></div>
+        <div class="kpi"><div class="lbl">Comisión total</div><div class="val ${S.totalComision>=0?'pos':'neg'}">${fmt(S.totalComision,2)} ${S.moneda}</div></div>
         <div class="kpi"><div class="lbl">Costes totales</div><div class="val neg">${fmt(S.totalCostes,2)} ${S.moneda}</div></div>
       </div>
     </div>
@@ -764,7 +764,7 @@ function renderSummaryHTML(S){
     <div class="sumSection"><h2>Largo vs. corto</h2></div>
     <div class="card" style="margin-bottom:22px">
       <table class="sumTbl"><thead><tr>
-        <th class="l">DirecciÃ³n</th><th>Operaciones</th><th>Winrate</th><th>Profit Factor</th><th>P&amp;L</th>
+        <th class="l">Dirección</th><th>Operaciones</th><th>Winrate</th><th>Profit Factor</th><th>P&amp;L</th>
       </tr></thead><tbody>
         <tr><td class="l">COMPRA (long)</td><td>${S.longShort.long.n}</td><td>${fmt(S.longShort.long.winrate,1)}%</td>`+
           `<td>${S.longShort.long.pf===Infinity?'âˆž':fmt(S.longShort.long.pf,2)}</td>`+
@@ -778,7 +778,7 @@ function renderSummaryHTML(S){
     <div class="sumSection"><h2>Historial de operaciones (${S.trades.length})</h2></div>
     <div class="card">
       <table class="sumTbl"><thead><tr>
-        <th class="l">Fecha entrada</th><th class="l">SÃ­mbolo</th><th class="l">Dir</th>
+        <th class="l">Fecha entrada</th><th class="l">Símbolo</th><th class="l">Dir</th>
         <th>Entrada</th><th>Salida</th><th>P&amp;L</th><th>R</th><th class="l">Estado</th>
       </tr></thead><tbody>
         ${S.trades.slice().reverse().map(t=>{
@@ -864,7 +864,7 @@ SYMS.forEach((s,idx)=>{
 });
 
 if(SYMS.length){ showSummaryView(); }
-else document.getElementById('legend').textContent = "No hay datos (data.js vacÃ­o).";
+else document.getElementById('legend').textContent = "No hay datos (data.js vacío).";
 </script>
 </body>
 </html>
