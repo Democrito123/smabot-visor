@@ -92,7 +92,7 @@
         <div class="indHead">Indicadores</div>
         <label class="indRow"><input type="checkbox" data-ind="zonas"><span class="sw" style="background:linear-gradient(90deg,#3aa0ff,#e8c98f,#ff7ec4,#d8d8d8,#4be04b,#3fae7a)"></span>Zonas horarias</label>
         <label class="indRow"><input type="checkbox" data-ind="sl"><span class="sw" style="background:#2979ff"></span>Escalera SL</label>
-        <label class="indRow"><input type="checkbox" data-ind="tradeLine"><span class="sw" style="background:rgb(57,255,20)"></span>Línea entradaâ†’salida</label>
+        <label class="indRow"><input type="checkbox" data-ind="tradeLine"><span class="sw" style="background:rgb(57,255,20)"></span>Línea entrada→salida</label>
         <label class="indRow"><input type="checkbox" data-ind="markers"><span class="sw" style="background:#ffffff;border-radius:50%"></span>Marcadores apertura/cierre</label>
         <label class="indRow"><input type="checkbox" data-ind="priceLines"><span class="sw" style="background:#ffd54f"></span>Líneas de precio (SL/Entr/Salida)</label>
       </div>
@@ -101,12 +101,12 @@
   <aside>
     <div class="asideHead">
       <h2>Operaciones</h2>
-      <button id="btnVolver" class="volverBtn" style="display:none">â† Vista general</button>
+      <button id="btnVolver" class="volverBtn" style="display:none">← Vista general</button>
     </div>
     <table id="tbl"><thead><tr>
       <th class="l">#</th><th class="l">Dir</th><th>Entrada</th><th>Salida</th><th>P&amp;L</th><th>R</th>
     </tr></thead><tbody id="tbody"></tbody></table>
-    <div class="hint">La vista general muestra las zonas horarias y la línea de TODAS las operaciones. Clic en una fila para enfocar SOLO esa operación (su línea, su escalera de SL SL0â†’SLk y zoom); usa "â† Vista general" para volver a ver todas. Rueda del mouse = zoom · arrastrar = desplazar.</div>
+    <div class="hint">La vista general muestra las zonas horarias y la línea de TODAS las operaciones. Clic en una fila para enfocar SOLO esa operación (su línea, su escalera de SL SL0→SLk y zoom); usa "← Vista general" para volver a ver todas. Rueda del mouse = zoom · arrastrar = desplazar.</div>
     <div id="detail" style="margin-top:12px"></div>
   </aside>
 </div>
@@ -441,9 +441,9 @@ function legend(sym, S){
   document.getElementById('legend').innerHTML =
     `<b>${sym}</b> · H4 · ${S.candles.length} velas<br>`+
     `<span class="sw" style="background:rgb(57,255,20);height:2px;border-bottom:2px dashed rgb(57,255,20)"></span>`+
-    `Línea punteada = entrada â†’ salida de cada operación (verde=ganó, amarillo=perdió)<br>`+
+    `Línea punteada = entrada → salida de cada operación (verde=ganó, amarillo=perdió)<br>`+
     `<span style="color:var(--muted)">Clic en una fila para enfocar SOLO esa operación (su línea, su SL y zoom) · `+
-    `botón "â† Vista general" junto a la tabla para volver<br>(panel de abajo: mostrar/ocultar cada indicador)</span>`;
+    `botón "← Vista general" junto a la tabla para volver<br>(panel de abajo: mostrar/ocultar cada indicador)</span>`;
 }
 
 function buildTable(trades){
@@ -572,9 +572,9 @@ function detail(t, i){
     `<tr><td class="l">Entrada</td><td>${fmt(t.entry_p,dg())}</td></tr>`+
     `<tr><td class="l">Salida</td><td>${t.exit_p?fmt(t.exit_p,dg()):'abierta'}</td></tr>`+
     `<tr><td class="l">P&amp;L neto</td><td class="${pnlc}">${fmt(t.pnl,2)} USD</td></tr>`+
-    `<tr><td class="l">Râ€‘múltiplo</td><td class="${r>=0?'pos':'neg'}">${fmt(r,2)} R</td></tr>`+
+    `<tr><td class="l">R-múltiplo</td><td class="${r>=0?'pos':'neg'}">${fmt(r,2)} R</td></tr>`+
     `<tr><td class="l">Estado</td><td>${t.estado}</td></tr>`+
-    (t.mfe!=null?`<tr><td class="l">Máx. a favor (runâ€‘up)</td><td class="pos">+${fmt(t.mfe,dg())} (${fmt(t.mfe_pct,2)}%)</td></tr>`:'')+
+    (t.mfe!=null?`<tr><td class="l">Máx. a favor (run-up)</td><td class="pos">+${fmt(t.mfe,dg())} (${fmt(t.mfe_pct,2)}%)</td></tr>`:'')+
     (t.mae!=null?`<tr><td class="l">Máx. en contra (drawdown)</td><td class="neg">-${fmt(t.mae,dg())} (${fmt(t.mae_pct,2)}%)</td></tr>`:'')+
     `</table>`+
     (t.bruto!=null?
@@ -714,7 +714,7 @@ function renderSummaryHTML(S){
     <div class="sumTop">
       <div><div class="lbl" style="color:var(--muted);font-size:12px;margin-bottom:4px">CAPITAL ACTUAL</div>
         <span class="sumBig">${fmt(S.capAct,2)}<span class="cur">${S.moneda}</span></span></div>
-      <div class="${deltaClass}">${S.pnlTotal>=0?'â–²':'â–¼'} ${fmt(Math.abs(S.pnlTotal),2)} ${S.moneda} (${fmt(S.pnlPct,1)}%)</div>
+      <div class="${deltaClass}">${S.pnlTotal>=0?'▲':'▼'} ${fmt(Math.abs(S.pnlTotal),2)} ${S.moneda} (${fmt(S.pnlPct,1)}%)</div>
     </div>
 
     <div class="kpis">
@@ -722,7 +722,7 @@ function renderSummaryHTML(S){
       <div class="kpi"><div class="lbl">Operaciones cerradas</div><div class="val">${S.nCerradas}</div></div>
       <div class="kpi"><div class="lbl">Abiertas ahora</div><div class="val">${S.nAbiertas}</div></div>
       <div class="kpi"><div class="lbl">Winrate</div><div class="val">${fmt(S.winrate,1)}%</div></div>
-      <div class="kpi"><div class="lbl">Profit Factor</div><div class="val">${S.pf===Infinity?'âˆž':fmt(S.pf,2)}</div></div>
+      <div class="kpi"><div class="lbl">Profit Factor</div><div class="val">${S.pf===Infinity?'∞':fmt(S.pf,2)}</div></div>
       <div class="kpi"><div class="lbl">Drawdown máx</div><div class="val" style="color:#ef5350">${fmt(S.maxDDpct,1)}%<span style="font-size:11px;color:var(--muted);font-weight:400"> (${fmt(S.maxDD,2)} ${S.moneda})</span></div></div>
     </div>
 
@@ -746,7 +746,7 @@ function renderSummaryHTML(S){
       <div class="kpis" style="margin:0">
         <div class="kpi"><div class="lbl">Ganancia media</div><div class="val pos">${fmt(S.avgWin,2)} ${S.moneda}</div></div>
         <div class="kpi"><div class="lbl">Pérdida media</div><div class="val neg">${fmt(S.avgLoss,2)} ${S.moneda}</div></div>
-        <div class="kpi"><div class="lbl">Ratio ganancia/pérdida</div><div class="val">${S.payoff===Infinity?'âˆž':fmt(S.payoff,2)}</div></div>
+        <div class="kpi"><div class="lbl">Ratio ganancia/pérdida</div><div class="val">${S.payoff===Infinity?'∞':fmt(S.payoff,2)}</div></div>
         <div class="kpi"><div class="lbl">Expectancia / trade</div><div class="val ${S.expectancy>=0?'pos':'neg'}">${fmt(S.expectancy,2)} ${S.moneda}</div></div>
         <div class="kpi"><div class="lbl">Duración media</div><div class="val">${fmt(S.avgDurH,0)} h</div></div>
         <div class="kpi"><div class="lbl">Mejor operación</div><div class="val pos">${S.best?fmt(S.best.pnl,2):'–'} ${S.moneda}</div></div>
@@ -754,7 +754,7 @@ function renderSummaryHTML(S){
         <div class="kpi"><div class="lbl">Racha máx. ganadora</div><div class="val pos">${S.maxRachaW}</div></div>
         <div class="kpi"><div class="lbl">Racha máx. perdedora</div><div class="val neg">${S.maxRachaL}</div></div>
         <div class="kpi"><div class="lbl">Sharpe (por operación)</div><div class="val">${fmt(S.sharpe,2)}</div></div>
-        <div class="kpi"><div class="lbl">Sortino (por operación)</div><div class="val">${S.sortino===Infinity?'âˆž':fmt(S.sortino,2)}</div></div>
+        <div class="kpi"><div class="lbl">Sortino (por operación)</div><div class="val">${S.sortino===Infinity?'∞':fmt(S.sortino,2)}</div></div>
         <div class="kpi"><div class="lbl">Swap total</div><div class="val ${S.totalSwap>=0?'pos':'neg'}">${fmt(S.totalSwap,2)} ${S.moneda}</div></div>
         <div class="kpi"><div class="lbl">Comisión total</div><div class="val ${S.totalComision>=0?'pos':'neg'}">${fmt(S.totalComision,2)} ${S.moneda}</div></div>
         <div class="kpi"><div class="lbl">Costes totales</div><div class="val neg">${fmt(S.totalCostes,2)} ${S.moneda}</div></div>
@@ -767,10 +767,10 @@ function renderSummaryHTML(S){
         <th class="l">Dirección</th><th>Operaciones</th><th>Winrate</th><th>Profit Factor</th><th>P&amp;L</th>
       </tr></thead><tbody>
         <tr><td class="l">COMPRA (long)</td><td>${S.longShort.long.n}</td><td>${fmt(S.longShort.long.winrate,1)}%</td>`+
-          `<td>${S.longShort.long.pf===Infinity?'âˆž':fmt(S.longShort.long.pf,2)}</td>`+
+          `<td>${S.longShort.long.pf===Infinity?'∞':fmt(S.longShort.long.pf,2)}</td>`+
           `<td class="${S.longShort.long.pnl>=0?'pos':'neg'}">${fmt(S.longShort.long.pnl,2)} ${S.moneda}</td></tr>
         <tr><td class="l">VENTA (short)</td><td>${S.longShort.short.n}</td><td>${fmt(S.longShort.short.winrate,1)}%</td>`+
-          `<td>${S.longShort.short.pf===Infinity?'âˆž':fmt(S.longShort.short.pf,2)}</td>`+
+          `<td>${S.longShort.short.pf===Infinity?'∞':fmt(S.longShort.short.pf,2)}</td>`+
           `<td class="${S.longShort.short.pnl>=0?'pos':'neg'}">${fmt(S.longShort.short.pnl,2)} ${S.moneda}</td></tr>
       </tbody></table>
     </div>
