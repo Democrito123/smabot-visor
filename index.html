@@ -312,8 +312,18 @@ function offsetLocal(tServerSec){ return icMarketsEnDST(tServerSec) ? -7 : -6; }
 // SIEMPRE que se construye un punto para una serie del grafico (velas, marcadores,
 // lineas, zonas) o para mostrar una hora en texto (fmtT).
 function toChartTime(tServer){ return tServer + offsetLocal(tServer) * 3600; }
+// Las ZONAS de la estrategia estan definidas en hora de NUEVA YORK (son sesiones de
+// mercado: pre-market NY, sesion NY, etc.) -- "para el neoyorquino los horarios de las
+// zonas son siempre los mismos, solo cambian las manecillas del reloj". El servidor de
+// IC Markets tiene una relacion CONSTANTE de -7h con NY (ambos cambian de horario el
+// mismo dia por politica del broker), asi que a diferencia de toChartTime (que usa el
+// offset VARIABLE -6/-7 para mostrar la hora de Bolivia), la clasificacion de zona usa
+// siempre -7 exactas, sin importar el DST. Bolivia ve la zona en el mismo horario que
+// NY durante EDT (coinciden, UTC-4 ambos) y 1 hora mas tarde durante EST (Bolivia no
+// tiene horario de verano, NY si).
+function horaNY(tServerSec){ return tServerSec - 7 * 3600; }
 function clasificarCuadro(tServerSec){
-  const tLocal = new Date((tServerSec + offsetLocal(tServerSec) * 3600) * 1000);
+  const tLocal = new Date(horaNY(tServerSec) * 1000);
   const mins = tLocal.getUTCHours() * 60 + tLocal.getUTCMinutes();
   if(mins >= 150 && mins < 270)  return 'azul';
   if(mins >= 270 && mins < 390)  return 'crema';
