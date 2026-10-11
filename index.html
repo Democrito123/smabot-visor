@@ -18,7 +18,7 @@
   .tab.active{background:#232323;border-color:#444;color:#eaf3ff}
   .wrap{display:flex;height:calc(100vh - 52px)}
   #chart{flex:1;position:relative}
-  aside{width:330px;border-left:1px solid var(--grid);overflow:auto;padding:10px 12px}
+  aside{width:390px;border-left:1px solid var(--grid);overflow:auto;padding:10px 12px}
   aside h2{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:6px 0}
   table{width:100%;border-collapse:collapse}
   th,td{padding:6px 6px;text-align:right;border-bottom:1px solid #16202f;font-size:12px}
@@ -29,6 +29,7 @@
   tr.trow.sel{background:#1b3350}
   .pos{color:var(--up)} .neg{color:var(--dn)}
   .pill{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700}
+.ztag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700;border:1px solid;white-space:nowrap}
   .buy{background:#12352b;color:#4fe0b6} .sell{background:#3a1f22;color:#ff8a8f}
   .overlay{position:absolute;top:8px;left:10px;z-index:5;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:230px}
   .legend{background:rgba(0,0,0,.82);border:1px solid var(--grid);
@@ -104,7 +105,7 @@
       <button id="btnVolver" class="volverBtn" style="display:none">← Vista general</button>
     </div>
     <table id="tbl"><thead><tr>
-      <th class="l">#</th><th class="l">Dir</th><th>Entrada</th><th>Salida</th><th>P&amp;L</th><th>R</th>
+      <th class="l">#</th><th class="l">Dir</th><th class="l">Zona</th><th>Entrada</th><th>Salida</th><th>P&amp;L</th><th>R</th>
     </tr></thead><tbody id="tbody"></tbody></table>
     <div class="hint">La vista general muestra las zonas horarias y la línea de TODAS las operaciones. Clic en una fila para enfocar SOLO esa operación (su línea, su escalera de SL SL0→SLk y zoom); usa "← Vista general" para volver a ver todas. Rueda del mouse = zoom · arrastrar = desplazar.</div>
     <div id="detail" style="margin-top:12px"></div>
@@ -336,6 +337,14 @@ function clasificarCuadro(tServerSec){
   if(mins >= 690 && mins < 1260) return 'verde1';   // 11:30-21:00 NY (antes 12:30-22:00)
   return 'verde2';
 }
+// 11-oct-2026: etiqueta de color con la ZONA en que ocurrio un momento del trade
+// (misma regla que el EA y que el sombreado del grafico; ts = hora del servidor).
+function zonaTag(ts){
+  if(ts==null) return '<span style="color:var(--muted)">-</span>';
+  const z = clasificarCuadro(ts);
+  const c = (ZONE_COLOR[z] || ZONE_COLOR.verde2).line;
+  return `<span class="ztag" style="color:${c};border-color:${c}">${z}</span>`;
+}
 function computeZoneSegments(candles){
   const segs = [];
   let cur = null;
@@ -503,6 +512,7 @@ function buildTable(trades){
     tr.innerHTML =
       `<td class="l">${i+1}${est}</td>`+
       `<td class="l"><span class="pill ${t.dir==='compra'?'buy':'sell'}">${t.dir==='compra'?'BUY':'SELL'}</span></td>`+
+      `<td class="l" title="${t.logica?('Lógica: '+t.logica+' · '):''}zona de entrada">${zonaTag(t.entry_t)}</td>`+
       `<td>${fmt(t.entry_p, dg())}</td>`+
       `<td>${t.exit_p?fmt(t.exit_p,dg()):'abierta'}</td>`+
       `<td class="${pnlc}">${fmt(t.pnl,2)}</td>`+
@@ -609,6 +619,9 @@ function detail(t, i){
     `<table>`+
     `<tr><td class="l">Símbolo</td><td>${curSym}</td></tr>`+
     `<tr><td class="l">Dirección</td><td>${t.dir==='compra'?'COMPRA':'VENTA'}</td></tr>`+
+    (t.logica?`<tr><td class="l">Lógica</td><td>${t.logica}</td></tr>`:'')+
+    `<tr><td class="l">Zona de entrada</td><td>${zonaTag(t.entry_t)}</td></tr>`+
+    `<tr><td class="l">${t.exit_t?'Zona de salida':'Zona actual'}</td><td>${t.exit_t?zonaTag(t.exit_t):zonaTag(D.symbols[curSym].candles.slice(-1)[0]?.t)}</td></tr>`+
     `<tr><td class="l">Lotes</td><td>${fmt(t.lots,2)}</td></tr>`+
     `<tr><td class="l">Inicio</td><td style="font-size:11px">${fmtT(t.entry_t)}</td></tr>`+
     `<tr><td class="l">Fin</td><td style="font-size:11px">${t.exit_t?fmtT(t.exit_t):'abierta'}</td></tr>`+
@@ -822,6 +835,7 @@ function renderSummaryHTML(S){
     <div class="card">
       <table class="sumTbl"><thead><tr>
         <th class="l">Fecha entrada</th><th class="l">Símbolo</th><th class="l">Dir</th>
+        <th class="l">Lógica</th><th class="l">Zona entrada</th><th class="l">Zona salida</th>
         <th>Entrada</th><th>Salida</th><th>P&amp;L</th><th>R</th><th class="l">Estado</th>
       </tr></thead><tbody>
         ${S.trades.slice().reverse().map(t=>{
@@ -833,6 +847,9 @@ function renderSummaryHTML(S){
             `<td class="l" style="font-size:11px;color:var(--muted)">${fmtT(t.entry_t)}</td>`+
             `<td class="l"><span class="symtag" style="background:#151515">${t.sym}</span></td>`+
             `<td class="l"><span class="pill ${t.dir==='compra'?'buy':'sell'}">${t.dir==='compra'?'BUY':'SELL'}</span></td>`+
+            `<td class="l" style="font-size:11px">${t.logica||'-'}</td>`+
+            `<td class="l">${zonaTag(t.entry_t)}</td>`+
+            `<td class="l">${t.exit_t?zonaTag(t.exit_t):'<span style="color:var(--muted)">abierta</span>'}</td>`+
             `<td>${fmt(t.entry_p,dgS)}</td><td>${t.exit_p?fmt(t.exit_p,dgS):'abierta'}</td>`+
             `<td class="${t.pnl>=0?'pos':'neg'}">${fmt(t.pnl,2)}</td>`+
             `<td class="${r>=0?'pos':'neg'}">${fmt(r,2)}</td>`+
