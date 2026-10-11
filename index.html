@@ -348,9 +348,14 @@ function zonaTag(ts){
 function computeZoneSegments(candles){
   const segs = [];
   let cur = null;
+  let prevT = null;
   for(const k of candles){
     const z = clasificarCuadro(k.t);
-    if(!cur || cur.zone !== z){
+    // 11-oct-2026: tambien se corta el segmento si hay un hueco de datos (> 2 h sin velas),
+    // para que una misma zona de dias distintos no se dibuje como un solo rectangulo.
+    const hueco = prevT !== null && (k.t - prevT) > 2 * 3600;
+    prevT = k.t;
+    if(!cur || cur.zone !== z || hueco){
       if(cur) segs.push(cur);
       cur = {zone:z, t0:k.t, t1:k.t, lo:k.l, hi:k.h};
     } else {
@@ -387,6 +392,14 @@ function renderZoneOverlay(){
     const w = Math.max(1, right - left), h = Math.max(1, yLo - yHi);
     html += `<div style="position:absolute;left:${left}px;top:${yHi}px;width:${w}px;height:${h}px;`+
             `background:${col.fill};border:1px solid ${col.line};box-sizing:border-box;pointer-events:none"></div>`;
+    // 11-oct-2026: nombre de la zona en la esquina superior del rectangulo (si cabe)
+    if(w >= 34){
+      const lx = Math.max(left, 2) + 3;
+      const ly = Math.max(yHi - 17, 2);
+      html += `<div style="position:absolute;left:${lx}px;top:${ly}px;font-size:11px;font-weight:700;`+
+              `color:${col.line};background:rgba(0,0,0,.65);padding:0 4px;border-radius:3px;`+
+              `white-space:nowrap;pointer-events:none">${seg.zone}</div>`;
+    }
   }
   zoneOverlay.innerHTML = html;
 }
@@ -462,7 +475,7 @@ function render(sym){
       visible: indState.tradeLine
     });
     s.setData(pts);
-    tradeLineSeries.push({series:s, i});
+    tradeLineSeries.push({series:s, i, pts});
   });
 
   buildTable(S.trades);
@@ -477,10 +490,13 @@ function volverVistaGeneral(){
   slLine.setData([]);
   curPriceLineTrade = null;
   clearPriceLines();
-  tradeLineSeries.forEach(o=>o.series.applyOptions({lineWidth:2, visible: indState.tradeLine}));
+  // restaurar los datos de TODAS las lineas entrada->salida (al enfocar un trade se vacian
+  // las de los demas para que no estiren el eje de tiempo)
+  tradeLineSeries.forEach(o=>{ o.series.setData(o.pts); o.series.applyOptions({lineWidth:2, visible: indState.tradeLine}); });
   const S = D.symbols[curSym];
   const cs = S.candles.map(k=>({time:toChartTime(k.t), open:k.o, high:k.h, low:k.l, close:k.c}));
   candle.setData(cs);
+  zoneSegs = computeZoneSegments(S.candles);
   applyMarkers();
   chart.timeScale().fitContent();
   renderZoneOverlay();
@@ -491,7 +507,8 @@ document.getElementById('btnVolver').addEventListener('click', volverVistaGenera
 
 function legend(sym, S){
   document.getElementById('legend').innerHTML =
-    `<b>${sym}</b> · H4 · ${S.candles.length} velas<br>`+
+    `<b>${sym}</b> · ${(()=>{const c=S.candles; const m=c.length>1?Math.round((c[c.length-1].t-c[c.length-2].t)/60):0; return m>=60?('H'+(m/60)):('M'+m);})()} · ${S.candles.length} velas<br>`+
+    `Zonas: <span style="color:#3aa0ff">azul</span> · <span style="color:#e8c98f">crema</span> · <span style="color:#ff7ec4">rosa</span> · <span style="color:#d8d8d8">blanco</span> · <span style="color:#4be04b">verde1</span> · <span style="color:#3fae7a">verde2</span> (hora NY)<br>`+
     `<span class="sw" style="background:rgb(57,255,20);height:2px;border-bottom:2px dashed rgb(57,255,20)"></span>`+
     `Línea punteada = entrada → salida de cada operación (verde=ganó, amarillo=perdió)<br>`+
     `<span style="color:var(--muted)">Clic en una fila para enfocar SOLO esa operación (su línea, su SL y zoom) · `+
@@ -563,6 +580,9 @@ function selectTrade(i){
   // juntas en la vista general, se ocultan para no confundir con el trade elegido)
   tradeLineSeries.forEach(o=>{
     const isSel = o.i===i;
+    // 11-oct-2026: las lineas de los otros trades se VACIAN (no solo se ocultan): ocultas
+    // seguian ocupando lugar en el eje de tiempo y dejaban un hueco vacio al hacer zoom.
+    o.series.setData(isSel ? o.pts : []);
     o.series.applyOptions({ lineWidth: isSel?4:2, visible: isSel && indState.tradeLine });
   });
 
@@ -599,6 +619,10 @@ function selectTrade(i){
   // bien) -- confirmado en pruebas. Volver a llamar setData con la MISMA data fuerza el
   // repintado correcto. Es un workaround, pero 100% reproducible y confiable.
   candle.setData(ventanaData);
+  // 11-oct-2026: las zonas se recalculan SOLO con las velas visibles de la ventana, para
+  // que cada rectangulo abarque exactamente esas velas (antes usaban el alto/ancho del
+  // dia completo y quedaban desfasadas al hacer zoom).
+  zoneSegs = computeZoneSegments(ventana);
   chart.timeScale().fitContent();
   renderZoneOverlay();
   detail(t, i);
